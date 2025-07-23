@@ -1,32 +1,34 @@
-import sqlite3
-conn = sqlite3.connect('youtube_videos.db')
-cur = conn.cursor()
+# import pymongo
+# Add Mongo Db URI
+# client = pymongo.MongoClient("MONGODB_URI")
+# print(client)
+from pymongo import MongoClient # type: ignore
+from bson import ObjectId # type: ignore
 
-cur.execute(''' 
-CREATE TABLE IF NOT EXISTS videos(
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            time TEXT NOT NULL
-        )
- ''')
+client = MongoClient("MONGODB_URI")
+print(client)
+
+db = client["ytmanager"]
+
+video_collection = db["videos"]
+
+print(video_collection)
+
 
 def list_videos():
-    cur.execute("SELECT * FROM videos")
-    for row in cur.fetchall():
-        print(row)
+    # Returns an interable
+    for video in video_collection.find():
+        print(f"ID :{video['_id']} Name: {video['name']} ,Time: {video['time']}")
 
 def add_video(name,time):
-    cur.execute("INSERT INTO videos (name,time) VALUES (?,?)", (name,time))
-    conn.commit()
+    video_collection.insert_one({"name":name,"time":time})
 
-def update_video(video_id,new_name,new_time):
-    cur.execute("UPDATE videos SET name = ?, time = ? WHERE id = ?",(new_name,new_time,video_id))
-    conn.commit()
+def update_video(video_id,name,time):
+    # First parameter what to update Second parameter updated value
+    video_collection.update_one({'_id':ObjectId(video_id)},{'$set':{"name":name,"time":time}})
 
 def delete_video(video_id):
-    cur.execute("DELETE FROM videos where id=?",(video_id,))
-    conn.commit()
-
+    video_collection.delete_one({"_id":ObjectId(video_id)})
 
 def main():
     while True:
@@ -55,7 +57,6 @@ def main():
             break
         else:
             print("Invalid Choice")
-    conn.close()
 
 if __name__ == "__main__":
     main()

@@ -13,7 +13,7 @@
 
 
 
-import requests
+import requests # type: ignore
 
 def fetch_random_user():
     url = "https://api.freeapi.app/api/v1/public/randomusers/user/random"
